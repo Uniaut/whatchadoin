@@ -6,16 +6,18 @@
 ----------
 phase 1 - 직접 입력
 
-[개념]
+[개요]
 
 주기적으로 app 내의 todo notes를 참조한다.
 WYSIWYG markdown 에디터의 형태를 지향한다.
 
-todo note의 변경사항으로 어떻게 작업이 진행되는지 background에서 추적 및 이벤트를 timstamp 단위로 기록한다.
+todo note의 변경사항으로 어떻게 작업이 진행되는지 background에서 추적 및 이벤트를 timstamp 단위로 기록한다. (여기에 AI 기반으로 작업이 어떻게 진행되는지를 track하기를 원함.)
 작업 종료 후 해당 이벤트에 대한 분석을 받는다.
 
 
-[리포트]
+[리포트 컨셉]
+칸반보드와 insight 섹션으로 나뉜다.
+칸반보드는 언제 어떤 업무에 집중하였는지 track하기 위해 존재하며, tracker가 시간의 분절 없이 진행했는지를 캐치한다.
 
 ----------
 phase 2 - tracking screenshot
