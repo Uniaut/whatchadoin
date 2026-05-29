@@ -1,50 +1,36 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import LeftSidebar from "./components/LeftSidebar";
+import WorkView from "./components/WorkView";
+import ReportView from "./components/ReportView";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+export type Tab = "work" | "report";
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+// mockup: 샘플 리포트 날짜 목록 (최신순)
+const SAMPLE_DATES = ["2026-05-29", "2026-05-28", "2026-05-27"];
+
+function App() {
+  const [tab, setTab] = useState<Tab>("work");
+  const [selectedDate, setSelectedDate] = useState<string>(SAMPLE_DATES[0]);
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <div className="layout">
+      <LeftSidebar
+        tab={tab}
+        onTabChange={setTab}
+        dates={SAMPLE_DATES}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+      />
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+      <main className="main">
+        {tab === "work" ? <WorkView /> : <ReportView date={selectedDate} />}
+      </main>
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+      <aside className="right-sidebar">
+        <span className="placeholder-text">Placeholder</span>
+      </aside>
+    </div>
   );
 }
 
