@@ -1,6 +1,7 @@
 import { useState } from "react";
-import reactLogo from "../assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import LeftSidebar from "../components/LeftSidebar";
+import WorkView from "../components/WorkView";
+import ReportView from "../components/ReportView";
 import "./App.css";
 
 export type Tab = "work" | "report";
@@ -26,7 +27,9 @@ function App() {
         {tab === "work" ? <WorkView /> : <ReportView date={selectedDate} />}
       </main>
 
-      <RightSidebar />
+      <aside className="right-sidebar">
+        <span className="placeholder-text">Placeholder</span>
+      </aside>
     </div>
   );
 }

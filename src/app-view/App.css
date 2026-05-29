@@ -56,63 +56,9 @@ body,
 .right-sidebar {
   border-left: 1px solid var(--border);
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ---------- right sidebar: event list ---------- */
-.events-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.events-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.event-list {
-  list-style: none;
-  margin: 0;
-  padding: 0.5rem 0;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.event-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-}
-
-.event-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-top: 0.3rem;
-}
-
-.event-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 0;
-}
-
-.event-time {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.event-text {
-  font-size: 0.8rem;
-  line-height: 1.35;
-  word-break: break-word;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 1.5rem;
 }
 
 .main {
