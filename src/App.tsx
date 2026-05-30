@@ -1,5 +1,6 @@
 import { useState } from "react";
 import LeftSidebar from "./components/LeftSidebar";
+import RightSidebar from "./components/RightSidebar";
 import WorkView from "./components/WorkView";
 import ReportView from "./components/ReportView";
 import "./App.css";
@@ -27,9 +28,7 @@ function App() {
         {tab === "work" ? <WorkView /> : <ReportView date={selectedDate} />}
       </main>
 
-      <aside className="right-sidebar">
-        <span className="placeholder-text">Placeholder</span>
-      </aside>
+      <RightSidebar />
     </div>
   );
 }
