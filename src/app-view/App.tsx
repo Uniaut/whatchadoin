@@ -1,8 +1,6 @@
 import { useState } from "react";
-import LeftSidebar from "./components/LeftSidebar";
-import RightSidebar from "./components/RightSidebar";
-import WorkView from "./components/WorkView";
-import ReportView from "./components/ReportView";
+import reactLogo from "../assets/react.svg";
+import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 export type Tab = "work" | "report";
