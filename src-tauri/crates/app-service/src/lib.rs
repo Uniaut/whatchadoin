@@ -1,18 +1,45 @@
 //! UI 요청 처리 레이어.
-//!
-//! `ProcessingApi`(처리 엔진)를 주입받아 리포트/QA 데이터를 획득해 UI에 전달한다.
-//! 구체 처리 크레이트가 아닌 `core-shared`의 Trait에만 의존해 결합을 낮춘다.
+//! SQLite DB를 보유하고 Tauri 커맨드에서 호출된다.
 
-use core_shared::ProcessingApi;
+pub mod db;
 
-/// UI 요청을 처리하는 서비스. tauri-main이 처리 엔진을 주입해 생성한다.
-pub struct AppService<P: ProcessingApi> {
-    _engine: P,
+use rusqlite::Connection;
+use std::sync::Mutex;
+use core_shared::{Task, TaskGraphCommand};
+
+pub struct AppService {
+    pub db: Mutex<Connection>,
 }
 
-impl<P: ProcessingApi> AppService<P> {
-    /// 처리 엔진을 주입받아 서비스를 생성한다.
-    pub fn new(engine: P) -> Self {
-        Self { _engine: engine }
+impl AppService {
+    pub fn open(path: &str) -> Result<Self, rusqlite::Error> {
+        let conn = Connection::open(path)?;
+        db::init_schema(&conn)?;
+        Ok(Self { db: Mutex::new(conn) })
+    }
+
+    pub fn save_snapshot(&self, content: &str) -> Result<Option<String>, rusqlite::Error> {
+        let conn = self.db.lock().unwrap();
+        let prev = db::get_latest_snapshot(&conn)?;
+        db::save_snapshot(&conn, content)?;
+        Ok(prev.map(|s| s.content))
+    }
+
+    pub fn apply_commands(&self, cmds: &[TaskGraphCommand]) -> Result<(), rusqlite::Error> {
+        let conn = self.db.lock().unwrap();
+        for cmd in cmds {
+            db::apply_command(&conn, cmd)?;
+        }
+        Ok(())
+    }
+
+    pub fn get_tasks(&self) -> Result<Vec<Task>, rusqlite::Error> {
+        let conn = self.db.lock().unwrap();
+        db::get_all_tasks(&conn)
+    }
+
+    pub fn update_task_status(&self, task_id: i64, status: &str) -> Result<(), rusqlite::Error> {
+        let conn = self.db.lock().unwrap();
+        db::update_task_status(&conn, task_id, status)
     }
 }
