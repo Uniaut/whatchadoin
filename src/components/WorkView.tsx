@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
-const SAMPLE_NOTE = `# 오늘의 작업
+export const SAMPLE_NOTE = `# 오늘의 작업
 
 ## 진행 중
 - [ ] 칸반 리포트 레이아웃 구현
@@ -15,12 +16,19 @@ const SAMPLE_NOTE = `# 오늘의 작업
 `;
 
 interface Props {
-  tasks: string[];
-  activeTask: string | null;
+  note: string;
+  onNoteChange: (note: string) => void;
 }
 
-function WorkView({ tasks, activeTask }: Props) {
-  const [note, setNote] = useState(SAMPLE_NOTE);
+function WorkView({ note, onNoteChange }: Props) {
+  const noteRef = useRef(note);
+  useEffect(() => { noteRef.current = note; }, [note]);
+  useEffect(() => {
+    const id = setInterval(() => {
+      invoke("save_snapshot", { content: noteRef.current }).catch(console.error);
+    }, 15_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="work-view">
@@ -32,23 +40,10 @@ function WorkView({ tasks, activeTask }: Props) {
         </span>
       </div>
 
-      {tasks.length > 0 && (
-        <div className="task-bar">
-          {tasks.map((task) => (
-            <span
-              key={task}
-              className={`task-chip${task === activeTask ? " active" : ""}`}
-            >
-              {task}
-            </span>
-          ))}
-        </div>
-      )}
-
       <textarea
         className="markdown-editor"
         value={note}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={(e) => onNoteChange(e.target.value)}
         spellCheck={false}
       />
 
