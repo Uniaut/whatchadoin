@@ -19,7 +19,7 @@ function CheckInWindow() {
     setData(d);
     setSelected(d.active_task ?? "");
     setNewTask("");
-    setShowNewTaskInput(d.active_task === null);
+    setShowNewTaskInput(d.active_task === null && d.tasks.length === 0);
   }, []);
 
   useEffect(() => {
