@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
-// mockup: 실제 WYSIWYG 마크다운 에디터 대신 styled textarea로 표현
-const SAMPLE_NOTE = `# 오늘의 작업
+export const SAMPLE_NOTE = `# 오늘의 작업
 
 ## 진행 중
 - [ ] 칸반 리포트 레이아웃 구현
@@ -15,8 +15,20 @@ const SAMPLE_NOTE = `# 오늘의 작업
 화면만 띄워두지 말고 실제로 밀도있게...
 `;
 
-function WorkView() {
-  const [note, setNote] = useState(SAMPLE_NOTE);
+interface Props {
+  note: string;
+  onNoteChange: (note: string) => void;
+}
+
+function WorkView({ note, onNoteChange }: Props) {
+  const noteRef = useRef(note);
+  useEffect(() => { noteRef.current = note; }, [note]);
+  useEffect(() => {
+    const id = setInterval(() => {
+      invoke("save_snapshot", { content: noteRef.current }).catch(console.error);
+    }, 15_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="work-view">
@@ -31,7 +43,7 @@ function WorkView() {
       <textarea
         className="markdown-editor"
         value={note}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={(e) => onNoteChange(e.target.value)}
         spellCheck={false}
       />
 
