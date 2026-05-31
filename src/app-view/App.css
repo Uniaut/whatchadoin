@@ -538,6 +538,90 @@ body,
   opacity: 0.85;
 }
 
+/* ---------- work layout (note + kanban) ---------- */
+.work-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+}
+
+.work-layout .work-view {
+  flex: 0 0 45%;
+  min-height: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.task-kanban {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  min-height: 0;
+}
+
+.kanban-col {
+  flex: 1;
+  padding: 0.75rem;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  min-width: 140px;
+}
+
+.kanban-col:last-child {
+  border-right: none;
+}
+
+.kanban-col-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.task-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.task-card.subtask {
+  margin-left: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.task-label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+  word-break: break-word;
+}
+
+.task-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-status {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.btn-status:hover {
+  background: var(--accent-soft);
+}
+
 /* ---------- dark theme ---------- */
 @media (prefers-color-scheme: dark) {
   :root {
