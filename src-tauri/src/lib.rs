@@ -19,40 +19,53 @@ fn open_checkin(
     state: tauri::State<'_, Mutex<CheckInState>>,
     tasks: Vec<String>,
     active_task: Option<String>,
-) {
-    println!("[Rust] open_checkin called, tasks: {:?}, active_task: {:?}", tasks, active_task);
+) -> Result<(), String> {
+    println!(
+        "[Rust] open_checkin called, tasks: {:?}, active_task: {:?}",
+        tasks, active_task
+    );
+    let checkin_data = CheckInData { tasks, active_task };
     {
-        let mut s = state.lock().unwrap();
-        s.tasks = tasks;
-        s.active_task = active_task;
+        let mut s = state.lock().map_err(|e| e.to_string())?;
+        s.tasks = checkin_data.tasks.clone();
+        s.active_task = checkin_data.active_task.clone();
     }
 
     if let Some(win) = app.get_webview_window("checkin") {
         println!("[Rust] checkin window exists, showing");
-        let _ = win.show();
-        let _ = win.set_focus();
+        win.show().map_err(|e| e.to_string())?;
+        win.set_focus().map_err(|e| e.to_string())?;
+        app.emit_to(
+            EventTarget::WebviewWindow {
+                label: "checkin".to_string(),
+            },
+            "checkin://data-updated",
+            checkin_data,
+        )
+        .map_err(|e| e.to_string())?;
     } else {
         println!("[Rust] creating new checkin window");
-        match WebviewWindowBuilder::new(&app, "checkin", WebviewUrl::App(Default::default()))
+        WebviewWindowBuilder::new(&app, "checkin", WebviewUrl::App(Default::default()))
             .title("지금 뭐 하고 있어?")
             .inner_size(360.0, 400.0)
             .center()
             .always_on_top(true)
             .resizable(false)
             .build()
-        {
-            Ok(_) => {
-                println!("[Rust] checkin window created");
-            }
-            Err(e) => println!("[Rust] failed to create checkin window: {}", e),
-        }
+            .map_err(|e| e.to_string())?;
+        println!("[Rust] checkin window created");
     }
+
+    Ok(())
 }
 
 #[tauri::command]
 fn get_checkin_data(state: tauri::State<'_, Mutex<CheckInState>>) -> CheckInData {
     let s = state.lock().unwrap();
-    println!("[Rust] get_checkin_data called, tasks: {:?}, active_task: {:?}", s.tasks, s.active_task);
+    println!(
+        "[Rust] get_checkin_data called, tasks: {:?}, active_task: {:?}",
+        s.tasks, s.active_task
+    );
     CheckInData {
         tasks: s.tasks.clone(),
         active_task: s.active_task.clone(),
@@ -60,16 +73,16 @@ fn get_checkin_data(state: tauri::State<'_, Mutex<CheckInState>>) -> CheckInData
 }
 
 #[tauri::command]
-fn submit_checkin(app: AppHandle, task: String) {
+fn submit_checkin(app: AppHandle, task: String) -> Result<(), String> {
     println!("[Rust] submit_checkin called, task: {}", task);
-    let result = app.emit_to(
+    app.emit_to(
         EventTarget::WebviewWindow {
             label: "main".to_string(),
         },
         "checkin://submit",
         task,
-    );
-    println!("[Rust] emit_to result: {:?}", result);
+    )
+    .map_err(|e| e.to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

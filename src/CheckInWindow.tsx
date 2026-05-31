@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./app-view/App.css";
@@ -15,17 +15,51 @@ function CheckInWindow() {
   const [newTask, setNewTask] = useState("");
   const [showNewTaskInput, setShowNewTaskInput] = useState(false);
 
-  useEffect(() => {
-    console.log("[CheckInWindow] mounted, calling get_checkin_data");
-    invoke<CheckInData>("get_checkin_data")
-      .then((d) => {
-        console.log("[CheckInWindow] get_checkin_data returned:", d);
-        setData(d);
-        setSelected(d.active_task ?? "");
-        setShowNewTaskInput(d.active_task === null);
-      })
-      .catch((e) => console.error("[CheckInWindow] get_checkin_data error:", e));
+  const applyCheckInData = useCallback((d: CheckInData) => {
+    setData(d);
+    setSelected(d.active_task ?? "");
+    setNewTask("");
+    setShowNewTaskInput(d.active_task === null);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let unlistenDataUpdated: (() => void) | null = null;
+
+    async function setup() {
+      try {
+        console.log("[CheckInWindow] mounted, calling get_checkin_data");
+        const d = await invoke<CheckInData>("get_checkin_data");
+        console.log("[CheckInWindow] get_checkin_data returned:", d);
+        if (!cancelled) {
+          applyCheckInData(d);
+        }
+      } catch (e) {
+        console.error("[CheckInWindow] get_checkin_data error:", e);
+      }
+
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        const unlisten = await listen<CheckInData>("checkin://data-updated", (event) => {
+          console.log("[CheckInWindow] received checkin://data-updated:", event.payload);
+          applyCheckInData(event.payload);
+        });
+        if (cancelled) {
+          unlisten();
+        } else {
+          unlistenDataUpdated = unlisten;
+        }
+      } catch (e) {
+        console.error("[CheckInWindow] data update listener setup failed:", e);
+      }
+    }
+
+    setup();
+    return () => {
+      cancelled = true;
+      unlistenDataUpdated?.();
+    };
+  }, [applyCheckInData]);
 
   async function handleSubmit() {
     const task = showNewTaskInput ? newTask.trim() : selected;
@@ -35,10 +69,10 @@ function CheckInWindow() {
     try {
       await invoke("submit_checkin", { task });
       console.log("[CheckInWindow] submit_checkin returned");
+      await getCurrentWindow().hide();
     } catch (e) {
       console.error("[CheckInWindow] submit_checkin error:", e);
     }
-    await getCurrentWindow().hide();
   }
 
   if (!data) {
