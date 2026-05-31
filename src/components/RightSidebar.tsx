@@ -31,13 +31,13 @@ const EVENTS: TrackedEvent[] = [
 function RightSidebar() {
   return (
     <aside className="right-sidebar">
-      <div className="events-header">
-        <span className="events-title">Events</span>
+      <header className="events-header">
+        <h2 className="events-title">Events</h2>
         <span className="tracking-status">
           <span className="tracking-dot" />
-          live
+          <span className="tracking-label">live</span>
         </span>
-      </div>
+      </header>
 
       <ul className="event-list">
         {EVENTS.map((ev, i) => (
@@ -46,10 +46,10 @@ function RightSidebar() {
               className="event-dot"
               style={{ background: KIND_COLOR[ev.kind] }}
             />
-            <div className="event-body">
-              <span className="event-time">{ev.time}</span>
+            <p className="event-body">
+              <time className="event-time">{ev.time}</time>
               <span className="event-text">{ev.text}</span>
-            </div>
+            </p>
           </li>
         ))}
       </ul>

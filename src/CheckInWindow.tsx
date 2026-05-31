@@ -42,17 +42,17 @@ function CheckInWindow() {
   }
 
   if (!data) {
-    return <div className="checkin-loading">로딩 중...</div>;
+    return <main className="checkin-loading">로딩 중...</main>;
   }
 
   const submitDisabled = showNewTaskInput ? !newTask.trim() : !selected;
 
   return (
-    <div className="checkin-window">
-      <p className="checkin-title">지금 뭐 하고 있어?</p>
+    <main className="checkin-window">
+      <h2 className="checkin-title">지금 뭐 하고 있어?</h2>
 
       {!showNewTaskInput ? (
-        <div className="checkin-task-list">
+        <section className="checkin-task-list">
           {data.tasks.map((task) => (
             <button
               key={task}
@@ -62,7 +62,7 @@ function CheckInWindow() {
               {task}
             </button>
           ))}
-        </div>
+        </section>
       ) : (
         <input
           className="checkin-input"
@@ -75,7 +75,7 @@ function CheckInWindow() {
         />
       )}
 
-      <div className="checkin-actions">
+      <footer className="checkin-actions">
         {!showNewTaskInput ? (
           <button
             className="checkin-new-btn"
@@ -101,8 +101,8 @@ function CheckInWindow() {
         >
           제출
         </button>
-      </div>
-    </div>
+      </footer>
+    </main>
   );
 }
 

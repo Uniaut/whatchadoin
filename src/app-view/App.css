@@ -6,12 +6,13 @@
   /* light theme tokens */
   --bg: #f6f6f6;
   --surface: #ffffff;
-  --surface-2: #eeeeee;
+  --surface-2: #f0f0f0;
+  --surface-3: #e7e7e7;
   --text: #0f0f0f;
   --text-muted: #6b6b6b;
-  --border: #dddddd;
+  --border: #d7d7d7;
   --accent: #396cd8;
-  --accent-soft: rgba(57, 108, 216, 0.12);
+  --accent-soft: rgba(57, 108, 216, 0.1);
 
   color: var(--text);
   background-color: var(--bg);
@@ -22,6 +23,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ---------- reset: strip default UA margins so spacing comes only from padding + borders ---------- */
 * {
   box-sizing: border-box;
 }
@@ -30,34 +32,134 @@ html,
 body,
 #root {
   margin: 0;
+  padding: 0;
   height: 100%;
 }
 
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+li,
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
 /* ---------- 3-column layout ---------- */
+/* 컬럼 사이는 오직 1px 세로선으로만 구분하고, 컬럼별 배경색으로 구분감을 준다 */
 .layout {
   display: grid;
-  grid-template-columns: 240px 1fr 200px;
+  grid-template-columns: 240px 1fr 220px;
   height: 100vh;
   overflow: hidden;
+  background-color: var(--bg);
 }
 
 .left-sidebar,
 .right-sidebar {
-  background-color: var(--surface);
+  background-color: var(--surface-2);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .left-sidebar {
   border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
 }
 
 .right-sidebar {
   border-left: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
+}
+
+.main {
+  background-color: var(--surface);
+  overflow-y: auto;
+}
+
+/* ---------- left sidebar ---------- */
+/* 탭 두 개를 gap 없이 1px 세로선으로만 분절한 세그먼트 컨트롤 */
+.tab-switcher {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.7rem 0;
+  border: none;
+  border-right: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.tab-btn:last-child {
+  border-right: none;
+}
+
+.tab-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.tab-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.left-sidebar-body {
+  flex: 1;
+  padding: 0.9rem;
+}
+
+.placeholder-text {
+  color: var(--text-muted);
+  font-style: italic;
+  display: block;
+  text-align: center;
+  padding-top: 1.5rem;
+}
+
+/* 날짜 목록: li 마다 하단 1px 선으로만 구분, 선택은 배경색 주입으로 표현 */
+.date-list {
+  flex: 1;
+}
+
+.date-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.date-item:hover {
+  background: var(--surface-3);
+}
+
+.date-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* ---------- right sidebar: event list ---------- */
@@ -65,140 +167,58 @@ body,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--surface-3);
   border-bottom: 1px solid var(--border);
 }
 
 .events-title {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .event-list {
-  list-style: none;
-  margin: 0;
-  padding: 0.5rem 0;
   overflow-y: auto;
   flex: 1;
 }
 
+/* 이벤트 항목: 하단 1px 선으로만 구분, 내부는 오직 padding으로 정렬 */
 .event-item {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  align-items: start;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
 }
 
 .event-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  margin-top: 0.3rem;
+  /* margin 대신 transform 으로 첫 줄 텍스트에 정렬 */
+  transform: translateY(0.32rem);
 }
 
 .event-body {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
   min-width: 0;
+  padding-left: 0.6rem;
 }
 
 .event-time {
   font-size: 0.7rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  padding-bottom: 0.15rem;
 }
 
 .event-text {
   font-size: 0.8rem;
   line-height: 1.35;
   word-break: break-word;
-}
-
-.main {
-  overflow-y: auto;
-  padding: 1.5rem;
-}
-
-.placeholder-text {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* ---------- left sidebar ---------- */
-.tab-switcher {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 0.4rem 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.tab-btn:hover {
-  border-color: var(--accent);
-}
-
-.tab-btn.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.left-sidebar-body {
-  flex: 1;
-  padding: 0.75rem;
-}
-
-.sidebar-placeholder {
-  display: flex;
-  justify-content: center;
-  padding-top: 1.5rem;
-}
-
-.date-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.date-item {
-  width: 100%;
-  text-align: left;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.85rem;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.date-item:hover {
-  border-color: var(--accent);
-}
-
-.date-item.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
 }
 
 /* ---------- work view ---------- */
@@ -208,24 +228,30 @@ body,
   height: 100%;
 }
 
+/* 헤더/툴바: 배경색 + 하단 1px 선으로 본문과 분리 */
 .editor-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  padding: 0.7rem 1rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
 }
 
 .editor-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
 .tracking-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+.tracking-label {
+  padding-left: 0.4rem;
 }
 
 .tracking-dot {
@@ -249,25 +275,23 @@ body,
   }
 }
 
+/* 작업 칩: gap 없이 1px 세로선으로만 분절, 활성은 배경색 주입 */
 .task-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
 }
 
 .task-chip {
-  padding: 0.25rem 0.65rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  border-right: 1px solid var(--border);
   font-size: 0.8rem;
   color: var(--text-muted);
-  background: var(--surface);
   white-space: nowrap;
 }
 
 .task-chip.active {
-  border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 600;
@@ -277,23 +301,20 @@ body,
   flex: 1;
   resize: none;
   width: 100%;
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  border: none;
   background: var(--surface);
   color: var(--text);
   font-family: "SF Mono", ui-monospace, Menlo, Monaco, monospace;
   font-size: 0.9rem;
-  line-height: 1.6;
+  line-height: 1.7;
   outline: none;
 }
 
-.markdown-editor:focus {
-  border-color: var(--accent);
-}
-
 .editor-footer {
-  margin-top: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
 }
 
 .hint {
@@ -302,41 +323,50 @@ body,
 }
 
 /* ---------- report view ---------- */
+/* 섹션 간 gap 없이 하단 1px 선으로만 분절 */
 .report-view {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
 }
 
 .report-header {
   display: flex;
   align-items: baseline;
-  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
 }
 
 .report-header h1 {
-  margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
 }
 
 .report-date {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  padding-left: 0.9rem;
+}
+
+.report-section {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .report-section h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text-muted);
+  padding-bottom: 0.75rem;
 }
 
 /* ---------- gantt ---------- */
+/* 막대/격자는 1px 선과 색상 면으로만 표현 (라운드/그림자 없음) */
 .gantt {
   --gantt-label-w: 130px;
   border: 1px solid var(--border);
-  border-radius: 8px;
   background: var(--surface);
-  padding: 0.5rem 0.75rem 0.75rem;
 }
 
 .gantt-row {
@@ -344,6 +374,11 @@ body,
   grid-template-columns: var(--gantt-label-w) 1fr;
   align-items: center;
   height: 34px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gantt-row:last-child {
+  border-bottom: none;
 }
 
 .gantt-label {
@@ -352,7 +387,11 @@ body,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 0.5rem;
+  padding: 0 0.7rem;
+  border-right: 1px solid var(--border);
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .gantt-track {
@@ -368,8 +407,12 @@ body,
 
 /* 시간축 행 */
 .gantt-axis {
-  height: 26px;
-  margin-bottom: 0.25rem;
+  height: 28px;
+  background: var(--surface-2);
+}
+
+.gantt-axis .gantt-label {
+  background: var(--surface-2);
 }
 
 .gantt-axis-track {
@@ -378,26 +421,26 @@ body,
 
 .gantt-tick {
   position: absolute;
-  top: 0;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
   font-size: 0.68rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
+/* 막대: 라운드/그림자 없이 색상 면 + 1px 선만으로 표현 */
 .gantt-bar {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  height: 20px;
+  height: 22px;
   min-width: 2px;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   padding: 0 0.4rem;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(0, 0, 0, 0.18);
 }
 
 .gantt-bar-time {
@@ -408,16 +451,20 @@ body,
   opacity: 0.95;
 }
 
+/* insight 영역: 점선 1px 테두리 + padding 만으로 표현 */
 .insights-placeholder {
   border: 1px dashed var(--border);
-  border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
-  background: var(--surface);
+  background: var(--surface-2);
 }
 
 .insights-placeholder p {
-  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.insights-placeholder p:last-child {
+  padding-bottom: 0;
 }
 
 /* ---------- debug ---------- */
@@ -427,7 +474,6 @@ body,
   right: 1rem;
   padding: 0.4rem 0.75rem;
   border: 1px dashed var(--border);
-  border-radius: 6px;
   background: var(--surface);
   color: var(--text-muted);
   font-size: 0.75rem;
@@ -444,45 +490,51 @@ body,
 
 /* ---------- check-in window ---------- */
 .checkin-title {
-  margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  padding: 0.9rem 1rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
 }
 
+/* 목록은 항목 사이 1px 선으로만 구분 */
 .checkin-task-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .checkin-task-btn {
   width: 100%;
   text-align: left;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background 0.12s, color 0.12s;
+}
+
+.checkin-task-btn:last-child {
+  border-bottom: none;
 }
 
 .checkin-task-btn:hover {
-  border-color: var(--accent);
+  background: var(--surface-2);
 }
 
 .checkin-task-btn.selected {
   background: var(--accent-soft);
-  border-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
 }
 
 .checkin-input {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
   font-size: 0.9rem;
@@ -492,35 +544,35 @@ body,
 }
 
 .checkin-input:focus {
-  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .checkin-actions {
   display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
 }
 
+/* 액션 버튼들: gap 없이 1px 세로선으로만 분절 */
 .checkin-new-btn {
-  padding: 0.55rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-right: 1px solid var(--border);
+  background: var(--surface-2);
   color: var(--text);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.12s;
+  transition: background 0.12s;
 }
 
 .checkin-new-btn:hover {
-  border-color: var(--accent);
+  background: var(--surface-3);
 }
 
 .checkin-submit-btn {
-  padding: 0.55rem 1rem;
+  flex: 1;
+  padding: 0.7rem 1rem;
   border: none;
-  border-radius: 6px;
   background: var(--accent);
   color: #fff;
   font-size: 0.9rem;
@@ -541,13 +593,14 @@ body,
 /* ---------- dark theme ---------- */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1e1e1e;
-    --surface: #252526;
-    --surface-2: #2d2d30;
+    --bg: #1a1a1a;
+    --surface: #1e1e1e;
+    --surface-2: #252526;
+    --surface-3: #2d2d30;
     --text: #f0f0f0;
     --text-muted: #9a9a9a;
     --border: #3a3a3a;
     --accent: #4f8cff;
-    --accent-soft: rgba(79, 140, 255, 0.18);
+    --accent-soft: rgba(79, 140, 255, 0.16);
   }
 }

@@ -36,16 +36,16 @@ const fmtTime = (t: number) => {
 
 function ReportView({ date }: Props) {
   return (
-    <div className="report-view">
+    <article className="report-view">
       <header className="report-header">
         <h1>Report</h1>
-        <span className="report-date">{date}</span>
+        <time className="report-date">{date}</time>
       </header>
 
       <section className="report-section">
         <h2>Timeline</h2>
 
-        <div className="gantt">
+        <figure className="gantt">
           {/* 시간축 */}
           <div className="gantt-row gantt-axis">
             <div className="gantt-label" />
@@ -83,7 +83,7 @@ function ReportView({ date }: Props) {
               </div>
             </div>
           ))}
-        </div>
+        </figure>
 
         <p className="hint">빈 구간 = 추적 공백 (집중 분절)</p>
       </section>
@@ -97,7 +97,7 @@ function ReportView({ date }: Props) {
           </p>
         </div>
       </section>
-    </div>
+    </article>
   );
 }
 

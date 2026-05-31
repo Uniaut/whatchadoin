@@ -5,11 +5,10 @@ html,
   overflow: hidden;
 }
 
+/* gap/margin 없이, 자식들은 각자의 1px 하단선과 padding 으로만 분절된다 */
 .checkin-window {
-  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
   background: var(--surface);
   min-height: 100vh;
 }

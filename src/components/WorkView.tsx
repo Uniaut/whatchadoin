@@ -23,26 +23,26 @@ function WorkView({ tasks, activeTask }: Props) {
   const [note, setNote] = useState(SAMPLE_NOTE);
 
   return (
-    <div className="work-view">
-      <div className="editor-toolbar">
-        <span className="editor-title">Note</span>
+    <section className="work-view">
+      <header className="editor-toolbar">
+        <h2 className="editor-title">Note</h2>
         <span className="tracking-status">
           <span className="tracking-dot" />
-          15s마다 변경 추적 중
+          <span className="tracking-label">15s마다 변경 추적 중</span>
         </span>
-      </div>
+      </header>
 
       {tasks.length > 0 && (
-        <div className="task-bar">
+        <ul className="task-bar">
           {tasks.map((task) => (
-            <span
+            <li
               key={task}
               className={`task-chip${task === activeTask ? " active" : ""}`}
             >
               {task}
-            </span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       <textarea
@@ -52,10 +52,10 @@ function WorkView({ tasks, activeTask }: Props) {
         spellCheck={false}
       />
 
-      <div className="editor-footer">
+      <footer className="editor-footer">
         <span className="hint">WYSIWYG markdown editor (mockup)</span>
-      </div>
-    </div>
+      </footer>
+    </section>
   );
 }
 

@@ -17,7 +17,7 @@ function LeftSidebar({
 }: Props) {
   return (
     <aside className="left-sidebar">
-      <div className="tab-switcher">
+      <nav className="tab-switcher">
         <button
           className={`tab-btn ${tab === "work" ? "active" : ""}`}
           onClick={() => onTabChange("work")}
@@ -30,30 +30,28 @@ function LeftSidebar({
         >
           Report
         </button>
-      </div>
+      </nav>
 
-      <div className="left-sidebar-body">
-        {tab === "work" ? (
-          <div className="sidebar-placeholder">
-            <span className="placeholder-text">placeholder</span>
-          </div>
-        ) : (
-          <ul className="date-list">
-            {dates.map((date) => (
-              <li key={date}>
-                <button
-                  className={`date-item ${
-                    date === selectedDate ? "active" : ""
-                  }`}
-                  onClick={() => onSelectDate(date)}
-                >
-                  {date}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {tab === "work" ? (
+        <section className="left-sidebar-body">
+          <span className="placeholder-text">placeholder</span>
+        </section>
+      ) : (
+        <ul className="date-list">
+          {dates.map((date) => (
+            <li key={date}>
+              <button
+                className={`date-item ${
+                  date === selectedDate ? "active" : ""
+                }`}
+                onClick={() => onSelectDate(date)}
+              >
+                {date}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </aside>
   );
 }
