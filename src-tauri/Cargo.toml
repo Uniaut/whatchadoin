@@ -33,6 +33,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { workspace = true }
 serde_json = { workspace = true }
+rusqlite = { workspace = true }
 
 # 내부 크레이트 (tauri-main이 조립)
 app-service = { path = "crates/app-service" }

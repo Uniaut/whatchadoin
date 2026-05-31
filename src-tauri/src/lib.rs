@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, EventTarget, Manager, WebviewUrl, WebviewWindowBuilder};
+use app_service::AppService;
 
 #[derive(Default)]
 struct CheckInState {
@@ -85,22 +86,71 @@ fn submit_checkin(app: AppHandle, task: String) -> Result<(), String> {
     .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn save_snapshot(
+    app: AppHandle,
+    svc: tauri::State<'_, AppService>,
+    content: String,
+) -> Result<(), String> {
+    let prev_opt = svc.save_snapshot(&content).map_err(|e| e.to_string())?;
+
+    let before = prev_opt.unwrap_or_default();
+    let changes = processing::ai::parse_diff(&before, &content)
+        .unwrap_or_else(|e| {
+            eprintln!("[AI] parse_diff 실패: {}", e);
+            vec![]
+        });
+
+    if !changes.is_empty() {
+        let existing = svc.get_tasks().map_err(|e| e.to_string())?;
+        let cmds = processing::ai::map_tasks(&changes, &existing)
+            .unwrap_or_else(|e| {
+                eprintln!("[AI] map_tasks 실패: {}", e);
+                vec![]
+            });
+
+        if !cmds.is_empty() {
+            svc.apply_commands(&cmds).map_err(|e| e.to_string())?;
+            app.emit("task-graph-updated", ()).ok();
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+fn get_tasks(svc: tauri::State<'_, AppService>) -> Result<Vec<core_shared::Task>, String> {
+    svc.get_tasks().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn update_task_status_cmd(
+    app: AppHandle,
+    svc: tauri::State<'_, AppService>,
+    task_id: i64,
+    status: String,
+) -> Result<(), String> {
+    svc.update_task_status(task_id, &status)
+        .map_err(|e| e.to_string())?;
+    app.emit("task-graph-updated", ()).ok();
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // 조립기(tauri-main): 처리 엔진을 생성해 app-service에 주입한다.
-    let engine = processing::ProcessingEngine::default();
-    let _app_service = app_service::AppService::new(engine);
-    let _collector = collection::Collector::default();
-    // TODO: _app_service를 tauri state로 등록, _collector.start()로 추적 시작.
-    //   core-shared의 ReportDto는 향후 tauri command 반환 타입으로 사용.
+    let svc = AppService::open("whatchadoin.db").expect("DB 초기화 실패");
 
     tauri::Builder::default()
         .manage(Mutex::new(CheckInState::default()))
+        .manage(svc)
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             open_checkin,
             get_checkin_data,
-            submit_checkin
+            submit_checkin,
+            save_snapshot,
+            get_tasks,
+            update_task_status_cmd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
