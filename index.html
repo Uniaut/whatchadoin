@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tempo — 생산성/업무 시간 측정 앱 기획서</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#ffffff; --ink:#1c2330; --muted:#5b6573;
+    --line:#e4e8ee; --brand:#3b5bdb; --brand-soft:#edf0fe;
+    --accent:#0ca678; --warn:#e8590c; --pend:#f08c00; --bg-task:#7048e8;
+    --code:#f1f3f5; --radius:12px;
+    --maxw:980px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",Roboto,"Noto Sans KR",sans-serif;
+    line-height:1.7; font-size:15.5px;
+  }
+  a{color:var(--brand); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Layout */
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+  header.hero{
+    background:linear-gradient(135deg,#3b5bdb,#5f3dc4);
+    color:#fff; padding:54px 0 46px;
+  }
+  header.hero .wrap{max-width:var(--maxw)}
+  .eyebrow{letter-spacing:.18em; font-size:12px; text-transform:uppercase; opacity:.85; margin:0 0 10px}
+  header.hero h1{font-size:36px; margin:0 0 12px; font-weight:800; letter-spacing:-.5px}
+  header.hero p.lead{font-size:17px; opacity:.95; margin:0; max-width:680px}
+  .meta-row{margin-top:22px; display:flex; flex-wrap:wrap; gap:10px}
+  .pill{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+        padding:6px 13px; border-radius:999px; font-size:13px}
+
+  /* TOC */
+  nav.toc{
+    position:sticky; top:0; z-index:50; background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  }
+  nav.toc .wrap{display:flex; flex-wrap:wrap; gap:6px 14px; padding:11px 22px}
+  nav.toc a{font-size:13px; color:var(--muted); white-space:nowrap}
+  nav.toc a:hover{color:var(--brand); text-decoration:none}
+
+  main{padding:34px 0 80px}
+  section{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:30px 32px; margin:0 0 26px; scroll-margin-top:64px;
+  }
+  section > h2{
+    font-size:23px; margin:0 0 6px; font-weight:800; letter-spacing:-.3px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .sec-num{
+    background:var(--brand-soft); color:var(--brand); font-size:14px; font-weight:800;
+    width:30px; height:30px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  section > .sub{color:var(--muted); margin:0 0 20px; font-size:14px}
+  h3{font-size:17px; margin:26px 0 10px; font-weight:700}
+  h4{font-size:15px; margin:18px 0 8px; font-weight:700; color:#39414f}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0; padding-left:22px}
+  li{margin:5px 0}
+  code{background:var(--code); padding:2px 6px; border-radius:5px; font-size:13px;
+       font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+
+  /* Tables */
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px}
+  th,td{border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top}
+  th{background:#f1f3f8; font-weight:700; color:#39414f}
+  tbody tr:nth-child(even){background:#fafbfc}
+  td code{font-size:12.5px}
+
+  /* Badges */
+  .badge{display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap}
+  .b-todo{background:#e9ecef; color:#495057}
+  .b-pend{background:#fff3bf; color:#a5630a}
+  .b-focus{background:#d3f9d8; color:#0b7a4b}
+  .b-bg{background:#e5dbff; color:#5f3dc4}
+  .b-done{background:#d0ebff; color:#1971c2}
+
+  /* Callouts */
+  .note{border-left:4px solid var(--brand); background:var(--brand-soft);
+        padding:12px 16px; border-radius:0 8px 8px 0; margin:14px 0; font-size:14px}
+  .note.warn{border-color:var(--warn); background:#fff4e6}
+  .note.assume{border-color:var(--accent); background:#e6fcf5}
+  .note b{font-weight:800}
+
+  /* Diagram blocks */
+  .diagram{
+    background:#fbfcfe; border:1px dashed var(--line); border-radius:10px;
+    padding:18px; margin:16px 0; overflow-x:auto; text-align:center;
+  }
+  .diagram .mermaid{margin:0 auto}
+  .cap{font-size:12.5px; color:var(--muted); margin:6px 0 0; text-align:center}
+
+  /* Wireframe */
+  .wf{border:1px solid var(--line); border-radius:10px; padding:14px; margin:14px 0; background:#fcfcfd}
+  .wf .frame{border:1.5px solid #c5cdd9; border-radius:8px; background:#fff; padding:0; overflow:hidden}
+  .wf .tb{background:#f1f3f8; border-bottom:1px solid var(--line); padding:7px 12px; font-size:12.5px; color:#39414f; display:flex; gap:7px; align-items:center}
+  .dot{width:9px; height:9px; border-radius:50%; display:inline-block}
+  .wf-body{padding:14px; font-size:13px}
+  .cols{display:flex; gap:10px; flex-wrap:wrap}
+  .col{flex:1; min-width:120px; border:1px solid var(--line); border-radius:8px; background:#f8f9fb; padding:8px}
+  .col h5{margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .card-mini{background:#fff; border:1px solid var(--line); border-radius:6px; padding:7px 9px; margin:6px 0; font-size:12px; box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .timer{font-family:"SF Mono",monospace; font-size:11px; color:var(--brand)}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media(max-width:760px){ .grid2{grid-template-columns:1fr} header.hero h1{font-size:28px} }
+  footer{color:var(--muted); font-size:13px; text-align:center; padding:30px 0}
+  hr.soft{border:none; border-top:1px solid var(--line); margin:24px 0}
+  .kpi{display:flex; gap:12px; flex-wrap:wrap; margin:14px 0}
+  .kpi > div{flex:1; min-width:150px; background:#fbfcfe; border:1px solid var(--line); border-radius:10px; padding:13px 15px}
+  .kpi b{display:block; font-size:13px; color:var(--muted); font-weight:600; margin-bottom:3px}
+  .kpi span{font-size:15px; font-weight:700; color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Product Requirements Document · v1.0</p>
+    <h1>Tempo <span style="font-weight:400;opacity:.8">(가칭)</span></h1>
+    <p class="lead">출퇴근 시간 동안 주기적 Spotlight 팝업으로 "지금 무엇에 집중하고 있는가"를 기록하고, 작업별 focus·백그라운드 시간을 자동 측정하는 크로스플랫폼 데스크톱 생산성 앱.</p>
+    <div class="meta-row">
+      <span class="pill">크로스플랫폼 · Win / macOS / Linux</span>
+      <span class="pill">칸반 + 시간 측정</span>
+      <span class="pill">Spotlight 체크인</span>
+      <span class="pill">작성일 2026-05-29</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#s1">1. 제품 개요</a>
+    <a href="#s2">2. 핵심 컨셉</a>
+    <a href="#s3">3. 사용자 시나리오</a>
+    <a href="#s4">4. 기능 명세</a>
+    <a href="#s5">5. 데이터 모델</a>
+    <a href="#s6">6. 화면 구성</a>
+    <a href="#s7">7. 엣지 케이스</a>
+    <a href="#s8">8. MVP / 확장</a>
+    <a href="#s9">9. 기술 스택</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ========== 1. 제품 개요 ========== -->
+<section id="s1">
+  <h2><span class="sec-num">1</span> 제품 개요</h2>
+  <p class="sub">한 줄 정의, 해결하려는 문제, 타깃 사용자, 핵심 가치 제안</p>
+
+  <h3>한 줄 정의</h3>
+  <p><b>Tempo</b>는 칸반 보드로 업무를 관리하면서, 일과 시간 동안 주기적으로 "지금 무엇에 집중하고 있는지"를 가볍게 기록하게 하여, 작업별 실제 투입 시간(focus)과 위임/대기 시간(백그라운드)을 자동으로 정량화해 주는 데스크톱 앱이다.</p>
+
+  <h3>해결하려는 문제</h3>
+  <ul>
+    <li><b>주관적 시간 인식의 오차</b> — 사람은 자신이 무엇에 얼마나 시간을 썼는지 정확히 기억하지 못한다. 사후 타임시트 작성은 부정확하고 귀찮다.</li>
+    <li><b>컨텍스트 스위칭의 비가시성</b> — 하루에 작업을 몇 번 바꿨는지, 한 작업에 얼마나 몰입했는지가 보이지 않는다.</li>
+    <li><b>AI 에이전트 위임 시간의 누락</b> — Claude Code 같은 에이전트가 백그라운드로 돌리는 동안의 "진척"은 기존 타이머 앱에서 측정 단위로 잡히지 않는다.</li>
+    <li><b>회고 데이터 부재</b> — 하루를 마칠 때 "오늘 뭐 했지?"에 답할 구조화된 타임라인이 없다.</li>
+  </ul>
+
+  <h3>타깃 사용자</h3>
+  <table>
+    <thead><tr><th>세그먼트</th><th>특징</th><th>핵심 니즈</th></tr></thead>
+    <tbody>
+      <tr><td>1차: 지식 노동자 / 개발자</td><td>여러 작업을 병렬로 진행, AI 에이전트 활용, 셀프 시간관리 욕구</td><td>몰입 시간 가시화, 에이전트 위임 작업 추적</td></tr>
+      <tr><td>2차: 프리랜서 / 컨설턴트</td><td>클라이언트·프로젝트별 시간 청구 필요</td><td>작업별 정확한 시간 집계, 회고/리포트</td></tr>
+      <tr><td>3차: 자기계발형 직장인</td><td>딥워크 습관 형성, 산만함 줄이기</td><td>주기적 자기 점검, 집중 패턴 분석</td></tr>
+    </tbody>
+  </table>
+
+  <h3>핵심 가치 제안</h3>
+  <div class="kpi">
+    <div><b>저마찰 기록</b><span>5분 1회, 2클릭 + 한 줄</span></div>
+    <div><b>자동 시간 측정</b><span>상태만 옮기면 타이머 동작</span></div>
+    <div><b>에이전트 인지</b><span>백그라운드 진행 별도 집계</span></div>
+    <div><b>일과 단위 회고</b><span>퇴근 시 자동 리포트</span></div>
+  </div>
+  <div class="note assume"><b>가정.</b> 본 문서는 1인 사용·로컬 우선(local-first) 단일 사용자 앱을 전제로 한다. 팀 공유·서버 동기화·시간 청구서 발행은 향후 확장(§8)으로 분리한다.</div>
+</section>
+
+<!-- ========== 2. 핵심 컨셉 ========== -->
+<section id="s2">
+  <h2><span class="sec-num">2</span> 핵심 컨셉 정의</h2>
+  <p class="sub">작업 상태 체계 · focus 단일성 규칙 · 시간 측정 로직</p>
+
+  <h3>2.1 작업 상태 체계</h3>
+  <p>작업(Task)은 항상 아래 다섯 상태 중 정확히 하나를 가진다. 보드의 칸(컬럼)은 이 상태와 1:1 매핑된다. 단, <span class="badge b-focus">진행중·focus</span>와 <span class="badge b-bg">진행중·백그라운드</span>는 같은 "진행중" 컬럼 안에서 배지로 구분한다(컬럼 4개, 상태 5개).</p>
+  <table>
+    <thead><tr><th>상태</th><th>의미</th><th>시간 측정</th><th>focus 점유</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge b-todo">해야할일 TODO</span></td><td>착수 전 백로그</td><td>측정 안 함</td><td>불가</td></tr>
+      <tr><td><span class="badge b-pend">펜딩 PENDING</span></td><td>외부 의존·블로커로 대기(리뷰 대기, 답변 대기 등). 일시적으로 진행 불가</td><td>측정 안 함</td><td>불가</td></tr>
+      <tr><td><span class="badge b-focus">진행중·focus</span></td><td>지금 내가 직접 집중하는 단 하나의 작업</td><td><b>focus 시간</b> 누적</td><td>점유(동시 1개)</td></tr>
+      <tr><td><span class="badge b-bg">진행중·백그라운드</span></td><td>진행 중이나 내 직접 집중은 아님(에이전트 위임, 빌드/렌더 대기 등)</td><td><b>백그라운드 시간</b> 누적</td><td>비점유(동시 다수 허용)</td></tr>
+      <tr><td><span class="badge b-done">완료 DONE</span></td><td>종료된 작업</td><td>측정 중단·확정</td><td>불가</td></tr>
+    </tbody>
+  </table>
+
+  <h4>상태 전이 다이어그램</h4>
+  <div class="diagram">
+    <pre class="mermaid">
+stateDiagram-v2
+    [*] --> TODO: 작업 생성
+    TODO --> FOCUS: 집중 시작 (focus 점유)
+    TODO --> BG: 백그라운드 착수
+    TODO --> DONE: 즉시 완료
+    FOCUS --> BG: 위임·자리비움 (focus 해제)
+    BG --> FOCUS: 다시 직접 집중 (focus 점유)
+    FOCUS --> PENDING: 블로커 발생
+    BG --> PENDING: 블로커 발생
+    PENDING --> FOCUS: 블로커 해소·집중
+    PENDING --> BG: 블로커 해소·백그라운드
+    FOCUS --> DONE: 완료
+    BG --> DONE: 완료
+    PENDING --> DONE: 완료/취소
+    DONE --> TODO: 재오픈(되돌리기)
+    note right of FOCUS
+      focus는 전체에서 동시에 1개만 존재한다.
+      새 작업이 FOCUS로 진입하면 기존 FOCUS는
+      자동으로 BG 또는 직전 상태로 강등된다 (2.2).
+    end note
+    </pre>
+  </div>
+  <p class="cap">그림 1. 작업 상태 전이도 — 전환 조건 포함</p>
+
+  <h3>2.2 'focus는 단 하나' 규칙과 전환 동작</h3>
+  <p>시스템 전체에서 <span class="badge b-focus">진행중·focus</span> 작업은 항상 <b>0개 또는 1개</b>다. 사용자가 작업 B를 focus로 지정하면 다음이 원자적으로(atomic) 일어난다:</p>
+  <ol>
+    <li>현재 focus였던 작업 A의 진행 중 <b>focus 세션을 종료</b>(타이머 stop, 종료시각 기록).</li>
+    <li>작업 A를 어디로 보낼지 <b>강등 규칙</b>에 따라 결정:
+      <ul>
+        <li>A가 여전히 "진행 중"이어야 하면 → <span class="badge b-bg">백그라운드</span>로 강등하고 백그라운드 세션 시작.</li>
+        <li>사용자가 명시적으로 "A는 잠시 멈춤"을 선택하면 → <span class="badge b-pend">펜딩</span> 또는 <span class="badge b-todo">TODO</span>로 이동, 어떤 타이머도 돌지 않음.</li>
+      </ul>
+    </li>
+    <li>작업 B의 <b>focus 세션 시작</b>(타이머 start). B가 백그라운드였다면 백그라운드 세션을 종료하고 focus 세션으로 승격.</li>
+  </ol>
+  <div class="note assume"><b>기본값(가정).</b> 별도 선택 없이 다른 작업을 focus로 만들면, 직전 focus 작업은 <b>자동으로 백그라운드로 강등</b>된다(흔한 컨텍스트 스위칭 = 잠깐 자리 비움으로 간주). 단, Spotlight 팝업(§4)에서는 "이전 작업을 멈출까요/계속 둘까요?"를 1탭으로 물어 오분류를 줄인다.</div>
+
+  <h3>2.3 focus 시간 vs 백그라운드 시간</h3>
+  <table>
+    <thead><tr><th>구분</th><th>focus 시간</th><th>백그라운드 시간</th></tr></thead>
+    <tbody>
+      <tr><td>정의</td><td>사용자가 직접 그 작업에 몰입한 시간</td><td>작업이 진행되지만 사용자 집중 밖에서 흐른 시간(에이전트 실행, 빌드 등)</td></tr>
+      <tr><td>동시성</td><td>전체 합산 시 <b>겹치지 않음</b>(항상 1개)</td><td>여러 작업이 <b>동시 누적 가능</b></td></tr>
+      <tr><td>누적 시작</td><td>작업이 focus로 진입한 순간</td><td>작업이 백그라운드로 진입한 순간</td></tr>
+      <tr><td>누적 중단</td><td>다른 작업 focus 전환 / 일과 종료 / 유휴(idle) 임계 초과 / 펜딩·완료 이동</td><td>작업이 펜딩·완료·TODO로 이동 / 일과 종료</td></tr>
+      <tr><td>대표 지표</td><td><b>몰입도</b>·실투입</td><td><b>위임/병렬 효율</b></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>핵심 불변식.</b> 임의의 시점 <code>t</code>에서 focus 상태 작업 수 ∈ {0,1}. 따라서 하루 focus 시간 합 ≤ 일과 총 길이. 백그라운드 시간 합은 일과 길이를 초과할 수 있다(병렬).</div>
+
+  <h4>시간 측정 로직 흐름도</h4>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TD
+    A([틱: 1초/이벤트 발생]) --> B{일과 진행 중?}
+    B -- 아니오 --> Z[모든 타이머 정지]
+    B -- 예 --> C{유휴 임계 초과?}
+    C -- 예 --> I["focus 세션 일시정지<br/>유휴로 기록"] --> D
+    C -- 아니오 --> R{focus 세션 복귀?}
+    R -- 예 --> RS[focus 세션 재개]
+    R -- 아니오 --> D
+    RS --> D
+    D{현재 focus 작업 존재?}
+    D -- 예 --> E[focus 작업 += 경과]
+    D -- 아니오 --> F[focus 누적 없음]
+    E --> G
+    F --> G
+    G[[백그라운드 작업 집합 순회]] --> H{각 BG 작업 진행중?}
+    H -- 예 --> J[해당 작업 백그라운드 += 경과]
+    H -- 아니오 --> K[건너뜀]
+    J --> L([세션 테이블에 반영])
+    K --> L
+    </pre>
+  </div>
+  <p class="cap">그림 2. 시간 측정 누적/중단 로직 — focus와 백그라운드는 독립 누적</p>
+</section>
+
+<!-- ========== 3. 사용자 시나리오 ========== -->
+<section id="s3">
+  <h2><span class="sec-num">3</span> 사용자 시나리오 (User Story)</h2>
+  <p class="sub">하루 흐름: 출근 → 작업 전환 → 에이전트 위임 → 퇴근 → 회고</p>
+
+  <h4>US-1 · 출근, 일과 시작</h4>
+  <p>개발자 <b>지민</b>은 09:00에 Tempo를 연다. 어제 설정한 일과(09:00–18:00)가 자동 시작되며 첫 Spotlight 팝업이 뜬다. "오늘 첫 focus는?"에 보드의 <code>결제 모듈 리팩터링</code>을 선택 → 즉시 focus 타이머가 돈다.<br>
+  <i>가치: 하루의 시작점과 첫 집중 대상이 1초 만에 기록된다.</i></p>
+
+  <h4>US-2 · 작업 전환 (컨텍스트 스위칭)</h4>
+  <p>10:20, 동료가 코드리뷰를 요청한다. 지민은 보드에서 <code>PR #482 리뷰</code> 카드를 focus로 드래그한다. 시스템은 <code>결제 모듈</code> focus 세션을 종료하고 자동으로 백그라운드로 강등(혹은 펜딩 선택). 5분 뒤 Spotlight가 "여전히 PR 리뷰 중?"을 물으면 "맞음 — 코멘트 3개 작성 중"이라고 한 줄 남긴다.<br>
+  <i>가치: 전환 횟수·각 작업 점유 시간이 자동으로 기록된다.</i></p>
+
+  <h4>US-3 · 에이전트에게 위임 (백그라운드)</h4>
+  <p>11:00, 지민은 Claude Code에게 <code>테스트 커버리지 90% 작업</code>을 맡긴다. 이 카드를 <b>진행중·백그라운드</b>로 지정하고, 본인은 <code>결제 모듈</code>을 다시 focus로 가져온다. 이제 두 타이머가 동시에 흐른다 — 결제 모듈은 focus, 테스트 작업은 백그라운드.<br>
+  <i>가치: 내가 직접 한 시간과 에이전트가 대신 진행한 시간이 분리 집계된다.</i></p>
+
+  <h4>US-4 · 점심·자리비움 (유휴 처리)</h4>
+  <p>12:30, 지민이 점심으로 자리를 비운다. 키보드/마우스 입력이 없어 5분 후 유휴 임계를 넘기면 focus 타이머가 자동 일시정지되고 복귀 시 "12:30–13:25 자리 비움이었나요? 이 시간을 focus에서 제외할까요?"를 묻는다.<br>
+  <i>가치: 부풀려진 집중 시간이 자동 보정된다.</i></p>
+
+  <h4>US-5 · 퇴근, 회고</h4>
+  <p>18:00, 지민이 "일과 종료"를 누른다. 모든 타이머가 멈추고 <b>일과 리포트</b>가 뜬다 — 작업별 focus/백그라운드 시간, 전환 횟수, 그리고 각 Spotlight 때 남긴 한 줄 기록이 시간순 타임라인으로 정리된다. 지민은 "결제 모듈 3h12m, 전환 7회"를 보며 내일 우선순위를 정한다.<br>
+  <i>가치: 사후 작성 없이 구조화된 하루 회고가 완성된다.</i></p>
+</section>
+
+<!-- ========== 4. 기능 명세 ========== -->
+<section id="s4">
+  <h2><span class="sec-num">4</span> 기능 명세</h2>
+  <p class="sub">기능별 동작 조건 · 입력/출력 · 예외 처리</p>
+
+  <table>
+    <thead><tr><th>ID / 기능</th><th>동작 조건</th><th>입력 → 출력</th><th>예외 처리</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>F1</b> 칸반 보드 & 드래그앤드롭</td>
+        <td>앱 실행 시 항상</td>
+        <td>입력: 카드 드래그(컬럼 간 이동)·생성·편집 → 출력: 상태 변경, 타이머 start/stop 트리거</td>
+        <td>focus 컬럼에 이미 1개 존재 시 §2.2 전환 로직 실행; 동일 위치 드롭은 no-op</td>
+      </tr>
+      <tr>
+        <td><b>F2</b> focus 지정 (단일성 보장)</td>
+        <td>TODO/PENDING/BG 카드를 focus로 지정</td>
+        <td>입력: focus 지정 액션 → 출력: 이전 focus 자동 강등, 새 focus 세션 시작</td>
+        <td>이미 focus면 무시; 강등 대상 처리 실패 시 트랜잭션 롤백</td>
+      </tr>
+      <tr>
+        <td><b>F3</b> 백그라운드 진행 (다중)</td>
+        <td>진행 중이나 비집중 작업</td>
+        <td>입력: BG 지정 → 출력: 백그라운드 세션 시작, 다중 동시 허용</td>
+        <td>BG 작업 수 상한(기본 20) 초과 시 경고; focus와 동일 작업 중복 불가</td>
+      </tr>
+      <tr>
+        <td><b>F4</b> 시간 측정 엔진</td>
+        <td>일과 진행 중 & 작업이 진행 상태</td>
+        <td>입력: 시스템 틱(1s)/상태 이벤트 → 출력: 세션별 누적초, 보드 카드 실시간 타이머</td>
+        <td>시스템 시계 점프/슬립 복귀 시 wall-clock 재동기화; 음수 경과 방지</td>
+      </tr>
+      <tr>
+        <td><b>F5</b> Spotlight 체크인 팝업</td>
+        <td>일과 중, 설정 주기(기본 5분) 경과</td>
+        <td>입력: 작업 선택 + 한 줄 상태 메모 → 출력: PopupLog 1건, focus 갱신</td>
+        <td>무응답 시 §7-EC2; 입력 중 다음 주기 도래 시 큐잉(중복 표시 안 함)</td>
+      </tr>
+      <tr>
+        <td><b>F6</b> 즉석 작업 생성</td>
+        <td>팝업/보드에서 "새 작업"</td>
+        <td>입력: 제목(필수)·상태 → 출력: Task 신규 생성 후 즉시 focus 가능</td>
+        <td>빈 제목 거부; 중복 제목 허용(별 ID)</td>
+      </tr>
+      <tr>
+        <td><b>F7</b> 일과(출퇴근) 관리</td>
+        <td>사용자 설정 또는 수동</td>
+        <td>입력: 시작/종료 시각, 자동시작 on/off → 출력: Workday 레코드, 팝업 스케줄러 가동/정지</td>
+        <td>종료 미클릭 시 §7-EC4 자동 마감; 시작<종료 검증</td>
+      </tr>
+      <tr>
+        <td><b>F8</b> 유휴(idle) 감지</td>
+        <td>입력 무활동이 임계(기본 5분) 초과</td>
+        <td>입력: OS 입력 이벤트 부재 → 출력: focus 세션 일시정지 + 복귀 시 확인 다이얼로그</td>
+        <td>권한 미허용 OS는 수동 모드로 폴백; 미디어 재생 중 예외 옵션</td>
+      </tr>
+      <tr>
+        <td><b>F9</b> 일과 종료 리포트</td>
+        <td>일과 종료 시점</td>
+        <td>입력: 당일 세션·팝업 로그 → 출력: 작업별 통계 + 타임라인 뷰</td>
+        <td>데이터 0건이면 빈 상태 안내; 진행 중 세션 강제 마감 후 집계</td>
+      </tr>
+      <tr>
+        <td><b>F10</b> 과거 기록 조회</td>
+        <td>언제든</td>
+        <td>입력: 날짜/기간 선택 → 출력: 해당 일과 리포트 재구성, 주/월 합계</td>
+        <td>해당일 데이터 없음 안내; 대용량은 페이지네이션</td>
+      </tr>
+      <tr>
+        <td><b>F11</b> 설정</td>
+        <td>언제든</td>
+        <td>입력: 팝업 주기·유휴 임계·일과 기본값·테마·알림음 → 출력: 즉시 반영</td>
+        <td>범위 밖 값(예: 주기<1분) 거부, 기본값으로 복원</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== 5. 데이터 모델 ========== -->
+<section id="s5">
+  <h2><span class="sec-num">5</span> 데이터 모델</h2>
+  <p class="sub">주요 엔티티 · 속성 · 관계</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+erDiagram
+    WORKDAY  ||--o{ TIME_SESSION : "포함"
+    WORKDAY  ||--o{ POPUP_LOG   : "포함"
+    TASK     ||--o{ TIME_SESSION : "측정됨"
+    TASK     ||--o{ POPUP_LOG   : "참조됨"
+    PROJECT  ||--o{ TASK        : "그룹핑(선택)"
+
+    PROJECT {
+      uuid   id PK
+      string name
+      string color
+    }
+    TASK {
+      uuid     id PK
+      string   title
+      string   status "TODO|PENDING|FOCUS|BG|DONE"
+      uuid     project_id FK "nullable"
+      int      focus_total_sec "캐시"
+      int      bg_total_sec    "캐시"
+      datetime created_at
+      datetime completed_at "nullable"
+    }
+    TIME_SESSION {
+      uuid     id PK
+      uuid     task_id FK
+      uuid     workday_id FK
+      string   kind "FOCUS|BACKGROUND"
+      datetime started_at
+      datetime ended_at "nullable=진행중"
+      int      idle_sec "유휴 제외분"
+    }
+    POPUP_LOG {
+      uuid     id PK
+      uuid     workday_id FK
+      uuid     task_id FK "nullable=무응답"
+      datetime shown_at
+      datetime responded_at "nullable"
+      string   note "한 줄 상태"
+      string   outcome "ANSWERED|SNOOZED|MISSED|NEW_TASK"
+    }
+    WORKDAY {
+      uuid     id PK
+      date     date
+      datetime start_at
+      datetime end_at "nullable=진행중"
+      bool     auto_started
+    }
+    SETTINGS {
+      int   popup_interval_min "기본 5"
+      int   idle_threshold_min "기본 5"
+      time  default_start
+      time  default_end
+      string theme
+    }
+    </pre>
+  </div>
+  <p class="cap">그림 3. 데이터 모델 관계도(ER)</p>
+
+  <h3>엔티티 설명</h3>
+  <ul>
+    <li><b>Task</b> — 작업 단위. 현재 상태는 단일 컬럼, 누적 시간은 <code>focus_total_sec</code>/<code>bg_total_sec</code>에 캐시(원천은 TimeSession 합).</li>
+    <li><b>TimeSession</b> — <b>시간 측정의 원천(source of truth)</b>. 하나의 (작업 × 종류 × 연속 구간). <code>ended_at=null</code>이면 현재 진행 중. focus 세션은 전체에서 동시 1개만 진행 상태일 수 있다(불변식).</li>
+    <li><b>PopupLog</b> — 각 Spotlight 노출/응답 1건. 타임라인과 회고의 원재료. <code>outcome</code>로 무응답·스누즈·신규생성 구분.</li>
+    <li><b>Workday</b> — 출퇴근 1일 단위. 팝업 스케줄과 리포트 집계의 경계.</li>
+    <li><b>Project</b>(선택) — 작업 그룹핑·색상. MVP에서는 단순 태그 수준, 확장 시 청구 단위.</li>
+    <li><b>Settings</b> — 단일 레코드(앱 전역 설정).</li>
+  </ul>
+  <div class="note assume"><b>가정.</b> 시간은 모두 UTC로 저장하고 표시 시 로컬 타임존 변환. 자정 넘김은 §7-EC3 규칙으로 세션을 분할 저장한다.</div>
+</section>
+
+<!-- ========== 6. 화면 구성 ========== -->
+<section id="s6">
+  <h2><span class="sec-num">6</span> 화면 구성 (와이어프레임)</h2>
+  <p class="sub">메인 보드 · Spotlight 팝업 · 일과 종료 리포트 · 과거 기록</p>
+
+  <h4>6.1 메인 보드</h4>
+  <div class="wf">
+    <div class="frame">
+      <div class="tb"><span class="dot" style="background:#fa5252"></span><span class="dot" style="background:#fcc419"></span><span class="dot" style="background:#40c057"></span><span style="margin-left:6px">Tempo — 09:00 시작 · 경과 04:12:30 · ⏺ focus: 결제 모듈</span></div>
+      <div class="wf-body">
+        <div class="cols">
+          <div class="col"><h5>해야할 일</h5>
+            <div class="card-mini">로그인 버그 수정</div>
+            <div class="card-mini">문서 업데이트</div>
+          </div>
+          <div class="col"><h5>펜딩</h5>
+            <div class="card-mini">PR #482 리뷰 답변대기</div>
+          </div>
+          <div class="col" style="background:#eef6ff"><h5>진행 중</h5>
+            <div class="card-mini" style="border-left:3px solid #0b7a4b">⏺ 결제 모듈 <span class="timer">focus 03:12</span></div>
+            <div class="card-mini" style="border-left:3px solid #5f3dc4">🤖 테스트 커버리지 <span class="timer">bg 01:48</span></div>
+          </div>
+          <div class="col"><h5>완료</h5>
+            <div class="card-mini">스키마 마이그레이션</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p>상단 바: 일과 상태·경과·현재 focus 표시 + [일과 종료] 버튼. 4개 컬럼, 진행 중 컬럼 내 카드는 focus(⏺)/백그라운드(🤖) 배지와 실시간 타이머. 드래그앤드롭으로 상태 전환. 카드 클릭 → 상세(제목·메모·세션 히스토리).</p>
+
+  <h4>6.2 Spotlight 체크인 팝업</h4>
+  <div class="wf">
+    <div class="frame" style="max-width:430px;margin:0 auto">
+      <div class="tb" style="justify-content:center;background:#3b5bdb;color:#fff">⏱ 체크인 · 14:05</div>
+      <div class="wf-body" style="text-align:center">
+        <p style="font-weight:700;margin:4px 0 12px">지금 무엇에 집중하고 있나요?</p>
+        <div class="card-mini" style="border:2px solid #3b5bdb">⏺ 결제 모듈 (현재 focus) — 계속</div>
+        <div class="card-mini">PR #482 리뷰</div>
+        <div class="card-mini">로그인 버그 수정</div>
+        <div class="card-mini" style="color:#3b5bdb">＋ 새 작업 만들기</div>
+        <p style="margin:12px 0 4px;font-size:11px;color:#5b6573">상태 한 줄 기록</p>
+        <div style="border:1px solid #e4e8ee;border-radius:6px;padding:7px;font-size:12px;color:#adb5bd;text-align:left">예: 카드 결제 API 연동 중…</div>
+        <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+          <span class="badge b-done">저장 (Enter)</span>
+          <span class="badge b-todo">나중에 (Esc)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p>화면 중앙 모달, 키보드 우선(↑↓ 선택·Enter 저장·Esc 스누즈). 현재 focus는 최상단에 강조. 새 작업은 인라인 생성. 한 줄 메모는 선택 입력(비워도 저장 가능).</p>
+
+  <div class="grid2">
+    <div>
+      <h4>6.3 일과 종료 리포트</h4>
+      <div class="wf"><div class="frame"><div class="tb">📊 2026-05-29 리포트</div>
+        <div class="wf-body">
+          <div class="card-mini">총 focus 5h 40m · 백그라운드 3h 10m · 전환 7회</div>
+          <div class="card-mini">결제 모듈 ▓▓▓▓▓ 3h12m focus</div>
+          <div class="card-mini">테스트 커버리지 ▓▓ 1h48m bg</div>
+          <div class="card-mini">PR 리뷰 ▓ 0h44m focus</div>
+          <div class="card-mini" style="color:#5b6573">─ 타임라인 ─<br>09:05 결제 모듈 시작<br>10:20 PR 리뷰로 전환<br>11:00 테스트 위임(bg)</div>
+        </div></div></div>
+    </div>
+    <div>
+      <h4>6.4 과거 기록 조회</h4>
+      <div class="wf"><div class="frame"><div class="tb">🗓 기록 · 주간</div>
+        <div class="wf-body">
+          <div class="card-mini">달력/주간 막대 그래프</div>
+          <div class="card-mini">월 5/25 focus 6h · 7건</div>
+          <div class="card-mini">월 5/26 focus 5h · 5건</div>
+          <div class="card-mini" style="color:#3b5bdb">날짜 클릭 → 해당 리포트 재생</div>
+          <div class="card-mini">작업/프로젝트별 누적 필터</div>
+        </div></div></div>
+    </div>
+  </div>
+
+  <h4>화면 흐름도</h4>
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart LR
+    L[앱 실행] --> B[메인 보드]
+    B -->|일과 시작/자동| B
+    B -. 주기 경과 .-> P[Spotlight 팝업]
+    P -->|저장/스누즈| B
+    B -->|새 작업| N[작업 생성 모달]
+    N --> B
+    B -->|카드 클릭| D[작업 상세]
+    D --> B
+    B -->|일과 종료| R[일과 리포트]
+    R -->|닫기| B
+    B -->|기록 메뉴| H[과거 기록 조회]
+    H -->|날짜 선택| R2[과거 리포트]
+    R2 --> H
+    B -->|설정| S[설정]
+    S --> B
+    </pre>
+  </div>
+  <p class="cap">그림 4. 화면 흐름도(Screen Flow)</p>
+
+  <h4>Spotlight 팝업 인터랙션 플로우</h4>
+  <div class="diagram">
+    <pre class="mermaid">
+sequenceDiagram
+    participant Sch as 스케줄러
+    participant UI as Spotlight 팝업
+    participant U as 사용자
+    participant E as 시간엔진
+    Sch->>UI: 주기 도래 → 팝업 표시(현재 focus 강조)
+    UI->>U: "지금 집중 대상?" + 메모 입력
+    alt 기존 작업 유지/선택
+        U->>UI: 작업 선택 + 한 줄 메모
+        UI->>E: focus 갱신(필요 시 전환 로직)
+        UI->>UI: PopupLog(ANSWERED) 저장
+    else 새 작업 생성
+        U->>UI: 제목 입력
+        UI->>E: 신규 Task 생성 후 focus 지정
+        UI->>UI: PopupLog(NEW_TASK) 저장
+    else 스누즈(Esc)
+        U->>UI: 나중에
+        UI->>Sch: N분 뒤 재노출
+        UI->>UI: PopupLog(SNOOZED) 저장
+    else 무응답(타임아웃)
+        UI->>UI: PopupLog(MISSED) 저장, focus 유지
+    end
+    UI-->>Sch: 다음 주기 예약
+    </pre>
+  </div>
+  <p class="cap">그림 5. Spotlight 팝업 인터랙션 플로우</p>
+</section>
+
+<!-- ========== 7. 엣지 케이스 ========== -->
+<section id="s7">
+  <h2><span class="sec-num">7</span> 엣지 케이스</h2>
+  <p class="sub">정상 흐름에서 벗어나는 상황과 처리 규칙</p>
+  <table>
+    <thead><tr><th>ID</th><th>상황</th><th>처리 규칙</th></tr></thead>
+    <tbody>
+      <tr><td>EC1</td><td>일과 시간 외에 작업</td><td>일과 종료 후엔 팝업이 뜨지 않고 신규 측정도 기본 비활성. 사용자가 작업을 focus로 옮기면 "지금 일과를 다시 열까요?(연장/임시 일과)"를 제안. 임시 일과로 측정하면 리포트에 '일과 외' 구간으로 별도 표기.</td></tr>
+      <tr><td>EC2</td><td>팝업 무응답</td><td>표시 후 타임아웃(기본 60초) 시 자동 닫힘 + PopupLog(MISSED). focus는 직전 상태 유지(시간 계속 누적). 연속 N회(기본 3) 무응답 시 "자리 비움?"으로 간주해 다음 팝업 주기를 늘리고 유휴 검사 강화.</td></tr>
+      <tr><td>EC3</td><td>자정 넘김</td><td>진행 중 세션을 23:59:59에서 split하여 당일/익일 2개 세션으로 저장(집계 경계 보존). 일과가 자정을 넘기게 설정된 경우(야근/야간 근무) Workday는 시작일 기준 1건으로 유지하되 날짜 경계 마커를 둠.</td></tr>
+      <tr><td>EC4</td><td>일과 종료 미클릭(잊고 자리 뜸)</td><td>설정 종료시각 + 유예(기본 2h) 경과 & 무활동이면 자동 마감. 마감 시각은 '마지막 활동 시각'으로 보정(빈 시간 부풀림 방지). 다음 실행 시 "어제 일과를 OO시에 마감했어요" 안내.</td></tr>
+      <tr><td>EC5</td><td>동시 백그라운드 다수</td><td>허용(설계 의도). 단 카드별 독립 누적이라 총 백그라운드 합 > 실제 경과가 정상. 리포트에서는 'wall-clock(실경과)'과 '백그라운드 누적합'을 분리 표기해 오해 방지. 상한 초과 시 경고.</td></tr>
+      <tr><td>EC6</td><td>focus 작업을 직접 완료/펜딩 이동</td><td>focus 세션 종료 후 focus 공석(0개). 다음 Spotlight 또는 즉시 프롬프트로 새 focus 유도. 공석 상태에서는 focus 시간 누적 없음.</td></tr>
+      <tr><td>EC7</td><td>시스템 슬립/절전 복귀</td><td>monotonic이 아닌 wall-clock 기준 재계산. 슬립 구간은 focus에서 제외(유휴로 처리), 단 BG가 '에이전트 실행'이면 사용자 선택으로 포함 가능.</td></tr>
+      <tr><td>EC8</td><td>시계 변경/타임존 이동</td><td>저장은 UTC. 사용자 시계 역행 감지 시 음수 경과를 0으로 클램프하고 이상 로그 기록.</td></tr>
+      <tr><td>EC9</td><td>앱 강제 종료 중 진행 세션</td><td>세션 시작은 영속 저장되어 있으므로 재실행 시 미마감 세션을 감지 → '마지막 하트비트 시각'까지로 복구 마감 후 사용자에게 보정 제안.</td></tr>
+      <tr><td>EC10</td><td>유휴 권한 거부(특히 Linux/Wayland)</td><td>OS 유휴 API 불가 시 수동 모드로 폴백: 팝업 응답·명시적 일시정지에만 의존. 설정에서 상태 안내.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== 8. MVP ========== -->
+<section id="s8">
+  <h2><span class="sec-num">8</span> MVP 범위 vs 향후 확장</h2>
+  <p class="sub">먼저 만들 것과 나중에 더할 것</p>
+  <div class="grid2">
+    <div>
+      <h4>MVP (v1.0) — 핵심 루프 검증</h4>
+      <ul>
+        <li>4컬럼 칸반 + 드래그앤드롭(F1)</li>
+        <li>focus 단일성 + 백그라운드 다중(F2·F3)</li>
+        <li>시간 측정 엔진 + 실시간 타이머(F4)</li>
+        <li>Spotlight 체크인 팝업(F5·F6)</li>
+        <li>일과 시작/종료 + 스케줄러(F7)</li>
+        <li>유휴 자동 일시정지(F8, 가능한 OS)</li>
+        <li>일과 종료 리포트 + 타임라인(F9)</li>
+        <li>과거 기록 조회 — 일 단위(F10)</li>
+        <li>로컬 저장(SQLite) · 단일 사용자</li>
+        <li>기본 설정(주기·임계·일과·테마)</li>
+      </ul>
+    </div>
+    <div>
+      <h4>향후 확장 (v1.1+)</h4>
+      <ul>
+        <li>주/월/프로젝트별 분석 대시보드, 추세·집중 패턴</li>
+        <li>프로젝트/태그·시간 청구서(인보이스) 내보내기(CSV/PDF)</li>
+        <li>에이전트 연동: Claude Code/CI 훅으로 BG 시작·완료 자동 감지</li>
+        <li>클라우드 동기화·멀티 디바이스·팀 공유 보드</li>
+        <li>캘린더 연동(회의 자동 작업화), Slack/Jira 연동</li>
+        <li>스마트 분류: 활성 앱/창 제목으로 작업 추천</li>
+        <li>목표·포모도로 모드, 방해 차단</li>
+        <li>자연어 회고 요약(AI), 모바일 컴패니언</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note"><b>MVP 성공 기준(가정).</b> 일 평균 Spotlight 응답률 ≥ 70%, 7일 차 리텐션 ≥ 40%, 리포트 조회율 ≥ 60%. 핵심 가설: "저마찰 주기 체크인이 사후 타임시트보다 정확하고 지속 가능하다."</div>
+</section>
+
+<!-- ========== 9. 기술 스택 ========== -->
+<section id="s9">
+  <h2><span class="sec-num">9</span> 기술 스택 제안</h2>
+  <p class="sub">크로스플랫폼 구현 방식 · 선택 이유 · 데이터 저장</p>
+
+  <h3>9.1 크로스플랫폼 프레임워크</h3>
+  <table>
+    <thead><tr><th>후보</th><th>장점</th><th>단점</th><th>본 제품 적합성</th></tr></thead>
+    <tbody>
+      <tr><td><b>Tauri</b> (Rust + WebView)<br><span class="badge b-focus">권장</span></td><td>경량(수~십 MB), 메모리 적음, OS 네이티브 API·트레이·전역 단축키·유휴 감지에 강함, 보안 모델 우수</td><td>Rust 학습 곡선, 일부 WebView 렌더 편차</td><td><b>높음</b> — 상주형 트레이 앱 + 빈번한 OS 이벤트(유휴/입력)와 궁합</td></tr>
+      <tr><td>Electron (Chromium + Node)</td><td>생태계·자료 풍부, 단일 렌더 엔진으로 일관성, 빠른 개발</td><td>무겁고(100MB+) 메모리 큼 — 종일 상주 앱엔 부담</td><td>중 — 빠른 프로토타입엔 좋으나 상주 부담</td></tr>
+      <tr><td>Flutter Desktop</td><td>단일 코드·고성능 렌더, 일관 UI</td><td>데스크톱 OS 통합(트레이/유휴) 성숙도 낮음</td><td>중하 — OS 통합 의존도 높은 본 제품엔 리스크</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>권장: Tauri.</b> 본 앱은 하루 종일 백그라운드 상주하며 트레이 아이콘, 전역 단축키(빠른 체크인), OS 유휴/입력 감지, 화면 중앙 Spotlight 모달을 자주 호출한다. 이런 "가벼운 상주 + 강한 OS 통합" 요건에 Tauri의 저자원·네이티브 접근이 가장 부합한다. 빠른 검증이 최우선이면 Electron으로 PoC 후 Tauri 이관도 합리적이다.</div>
+
+  <h3>9.2 아키텍처 & 데이터 저장</h3>
+  <ul>
+    <li><b>프론트엔드(WebView)</b>: TypeScript + React, 보드는 <code>dnd-kit</code>/<code>@hello-pangea/dnd</code>, 차트는 경량 라이브러리. 상태관리 Zustand.</li>
+    <li><b>코어(Rust)</b>: 시간 측정 엔진·스케줄러·유휴 감지·트레이를 네이티브에 둠(UI가 닫혀도 정확한 측정 보장). 1초 틱 대신 <b>이벤트 기반 + wall-clock 차감</b>으로 절전.</li>
+    <li><b>데이터 저장</b>: <b>로컬 SQLite</b>(local-first). 마이그레이션 관리, 트랜잭션으로 focus 전환 원자성 보장. 파일은 OS 앱 데이터 디렉터리에 저장, 사용자 내보내기(JSON/CSV) 제공.</li>
+    <li><b>동기화(확장)</b>: 초기엔 미포함. 확장 시 SQLite → 동기 가능 백엔드(예: 서버 + CRDT/이벤트 로그)로 점진 이행.</li>
+    <li><b>시간 정합성</b>: 모든 시각 UTC 저장, monotonic 보조 + wall-clock 기준 재동기화(슬립/시계변경 대비, §7).</li>
+  </ul>
+
+  <h3>9.3 핵심 기술 리스크</h3>
+  <table>
+    <thead><tr><th>리스크</th><th>완화책</th></tr></thead>
+    <tbody>
+      <tr><td>OS별 유휴 감지 편차(특히 Linux/Wayland)</td><td>플랫폼별 어댑터 + 미지원 시 수동 모드 폴백(EC10)</td></tr>
+      <tr><td>장시간 상주 시 측정 드리프트</td><td>틱 누적이 아닌 세션 start/end의 wall-clock 차이로 산출</td></tr>
+      <tr><td>focus 전환 동시성 버그</td><td>상태 전환을 단일 트랜잭션으로 직렬화, 불변식 검사 테스트</td></tr>
+      <tr><td>팝업 방해감</td><td>주기·스누즈·무응답 학습으로 적응형 빈도, 키보드 1초 응답</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  Tempo (가칭) · 제품 기획서 v1.0 · 작성 2026-05-29 · 단일 HTML 문서(외부 의존성: Mermaid CDN)
+</footer>
+
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad:true,
+    securityLevel:'loose',
+    theme:'base',
+    themeVariables:{
+      primaryColor:'#edf0fe', primaryBorderColor:'#3b5bdb', primaryTextColor:'#1c2330',
+      lineColor:'#7c89a3', fontSize:'13px',
+      fontFamily:'-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif'
+    },
+    flowchart:{ useMaxWidth:true, htmlLabels:true, curve:'basis' },
+    sequence:{ useMaxWidth:true },
+    er:{ useMaxWidth:true }
+  });
+</script>
+</body>
+</html>
