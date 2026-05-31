@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-// mockup: 실제 WYSIWYG 마크다운 에디터 대신 styled textarea로 표현
 const SAMPLE_NOTE = `# 오늘의 작업
 
 ## 진행 중
@@ -15,7 +14,12 @@ const SAMPLE_NOTE = `# 오늘의 작업
 화면만 띄워두지 말고 실제로 밀도있게...
 `;
 
-function WorkView() {
+interface Props {
+  tasks: string[];
+  activeTask: string | null;
+}
+
+function WorkView({ tasks, activeTask }: Props) {
   const [note, setNote] = useState(SAMPLE_NOTE);
 
   return (
@@ -27,6 +31,19 @@ function WorkView() {
           15s마다 변경 추적 중
         </span>
       </div>
+
+      {tasks.length > 0 && (
+        <div className="task-bar">
+          {tasks.map((task) => (
+            <span
+              key={task}
+              className={`task-chip${task === activeTask ? " active" : ""}`}
+            >
+              {task}
+            </span>
+          ))}
+        </div>
+      )}
 
       <textarea
         className="markdown-editor"

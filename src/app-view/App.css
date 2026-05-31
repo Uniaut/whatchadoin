@@ -249,6 +249,30 @@ body,
   }
 }
 
+.task-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.task-chip {
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  white-space: nowrap;
+}
+
+.task-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .markdown-editor {
   flex: 1;
   resize: none;
@@ -394,6 +418,124 @@ body,
 
 .insights-placeholder p {
   margin: 0 0 0.5rem;
+}
+
+/* ---------- debug ---------- */
+.debug-checkin-btn {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0.6;
+  z-index: 50;
+}
+
+.debug-checkin-btn:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------- check-in window ---------- */
+.checkin-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.checkin-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.checkin-task-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.checkin-task-btn:hover {
+  border-color: var(--accent);
+}
+
+.checkin-task-btn.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.checkin-input {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+
+.checkin-input:focus {
+  border-color: var(--accent);
+}
+
+.checkin-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.checkin-new-btn {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.checkin-new-btn:hover {
+  border-color: var(--accent);
+}
+
+.checkin-submit-btn {
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.checkin-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.checkin-submit-btn:not(:disabled):hover {
+  opacity: 0.85;
 }
 
 /* ---------- dark theme ---------- */
